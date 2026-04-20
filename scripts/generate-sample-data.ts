@@ -45,5 +45,5 @@ for (let d = 0; d < 30; d++) {
     }));
   }
 }
-writeFileSync(resolve(outDir, 'costs-sample.ndjson'), costs.join('\n') + '\n');
+writeFileSync(resolve(outDir, 'costs-daily-sample.ndjson'), costs.join('\n') + '\n');
 console.log(`Wrote ${costs.length} cost data points`);
