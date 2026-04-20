@@ -142,15 +142,17 @@ async function loadCloudTrail() {
 }
 
 async function loadNdjson(file: string, index: string) {
-  let data: string;
-  try {
-    data = readFileSync(join(import.meta.dirname, '..', 'data', file), 'utf-8');
-  } catch {
-    console.log(`No ${file} found, skipping`);
-    return;
+  const dataDir = join(import.meta.dirname, '..', 'data');
+  const sampleFile = file.replace('.ndjson', '-sample.ndjson');
+  let data: string | undefined;
+  for (const f of [file, sampleFile]) {
+    try {
+      const content = readFileSync(join(dataDir, f), 'utf-8').trim();
+      if (content) { data = content; console.log(`Using ${f}`); break; }
+    } catch {}
   }
-  const lines = data.trim().split('\n').filter(Boolean);
-  if (!lines.length) { console.log(`${file} is empty, skipping`); return; }
+  if (!data) { console.log(`No ${file} or ${sampleFile} found, skipping`); return; }
+  const lines = data.split('\n').filter(Boolean);
   const body = lines.flatMap((line, i) => [
     { index: { _index: index, _id: String(i) } },
     JSON.parse(line),

@@ -5,7 +5,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as opensearchserverless from 'aws-cdk-lib/aws-opensearchserverless';
 import { Construct } from 'constructs';
 
-const ACCOUNT_ID = '544277935543';
+const ACCOUNT_ID = process.env.AWS_ACCOUNT_ID || 'YOUR_ACCOUNT_ID';
 const COLLECTION_NAME = 'bedrock-monitor';
 
 export class BedrockMonitorStack extends cdk.Stack {
