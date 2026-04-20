@@ -74,9 +74,9 @@ async function loadMetrics() {
 async function importDashboards() {
   const dir = join(import.meta.dirname, '..', 'dashboards');
   for (const file of readdirSync(dir).filter(f => f.endsWith('.ndjson'))) {
-    const ndjson = readFileSync(join(dir, file));
+    const ndjson = readFileSync(join(dir, file), 'utf-8');
     const form = new FormData();
-    form.append('file', new Blob([ndjson], { type: 'application/x-ndjson' }), file);
+    form.append('file', new File([ndjson], file, { type: 'application/x-ndjson' }));
     const res = await fetch(`${DASHBOARDS}/api/saved_objects/_import?overwrite=true`, {
       method: 'POST',
       headers: { 'osd-xsrf': 'true' },
