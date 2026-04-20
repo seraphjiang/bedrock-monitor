@@ -7,6 +7,7 @@
     "build": "tsc",
     "ingest": "npx tsx src/ingestion/cloudwatch-to-opensearch.ts",
     "pull-metrics": "npx tsx scripts/pull-metrics.ts",
+    "pull-cloudtrail": "npx tsx scripts/pull-cloudtrail.ts",
     "generate-test-data": "npx tsx scripts/generate-test-invocations.ts",
     "export-dashboards": "npx tsx scripts/export-dashboards.ts",
     "load-local": "npx tsx scripts/load-to-local-opensearch.ts",
@@ -15,8 +16,10 @@
   "dependencies": {
     "@aws-sdk/client-bedrock": "^3.700.0",
     "@aws-sdk/client-bedrock-runtime": "^3.700.0",
+    "@aws-sdk/client-cloudtrail": "^3.1032.0",
     "@aws-sdk/client-cloudwatch": "^3.700.0",
     "@aws-sdk/client-cloudwatch-logs": "^3.700.0",
+    "@aws-sdk/client-cost-explorer": "^3.1032.0",
     "@aws-sdk/client-s3": "^3.700.0",
     "@opensearch-project/opensearch": "^2.12.0",
     "aws-cdk-lib": "^2.250.0",

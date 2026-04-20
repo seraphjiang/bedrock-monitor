@@ -27,3 +27,33 @@ export function estimateCost(modelId: string, inputTokens: number, outputTokens:
   const [inputRate, outputRate] = pricing[1];
   return (inputTokens / 1000) * inputRate + (outputTokens / 1000) * outputRate;
 }
+
+export interface GuardrailsDataPoint {
+  timestamp: string;
+  guardrailId: string;
+  region: string;
+  intervened: number;
+  blocked: number;
+}
+
+export interface CostDataPoint {
+  timestamp: string;
+  service: string;
+  usageType: string;
+  amountUsd: number;
+  unit: string;
+}
+
+export interface CloudTrailEvent {
+  eventTime: string;
+  eventName: string;
+  eventSource: string;
+  awsRegion: string;
+  sourceIPAddress: string;
+  userAgent: string;
+  userIdentity: { type: string; arn: string; accountId: string };
+  requestParameters: Record<string, unknown> | null;
+  responseElements: Record<string, unknown> | null;
+  errorCode?: string;
+  errorMessage?: string;
+}
