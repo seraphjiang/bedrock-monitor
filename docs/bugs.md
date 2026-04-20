@@ -32,3 +32,11 @@
 - **Description:** The dashboards container only sets `DISABLE_SECURITY_PLUGIN=true` but the OpenSearch Dashboards security plugin also needs `DISABLE_SECURITY_DASHBOARDS_PLUGIN=true`. Without it, all API calls return 401 Unauthorized.
 - **Fix:** Add `DISABLE_SECURITY_DASHBOARDS_PLUGIN=true` to the dashboards service environment.
 - **Status:** Fixed (docker-compose.yml updated)
+
+## BUG-005: load-to-local-opensearch.ts dashboard import uses wrong content type
+- **Severity:** Medium
+- **Found:** 2026-04-20 (Task 1.9)
+- **Component:** `scripts/load-to-local-opensearch.ts`
+- **Description:** The `importDashboards()` function sends the NDJSON as a `Blob` with `fetch()`, but the OpenSearch Dashboards saved objects import API expects `multipart/form-data` with a `file` field. The import silently fails (returns undefined). Curl with `--form file=@` works correctly.
+- **Fix:** Use `FormData` with a file field, or shell out to curl.
+- **Status:** Open
