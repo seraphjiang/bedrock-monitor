@@ -5,8 +5,27 @@ import { join } from 'path';
 const OPENSEARCH = process.env.OPENSEARCH_ENDPOINT || 'http://localhost:9200';
 const DASHBOARDS = process.env.DASHBOARDS_ENDPOINT || 'http://localhost:5601';
 const METRICS_INDEX = 'bedrock-metrics';
+const CLOUDTRAIL_INDEX = 'bedrock-cloudtrail';
 
 const client = new Client({ node: OPENSEARCH });
+
+const CLOUDTRAIL_MAPPING = {
+  mappings: {
+    properties: {
+      eventTime: { type: 'date' },
+      eventName: { type: 'keyword' },
+      eventSource: { type: 'keyword' },
+      awsRegion: { type: 'keyword' },
+      sourceIPAddress: { type: 'keyword' },
+      userAgent: { type: 'text' },
+      'userIdentity.type': { type: 'keyword' },
+      'userIdentity.arn': { type: 'keyword' },
+      'userIdentity.accountId': { type: 'keyword' },
+      errorCode: { type: 'keyword' },
+      errorMessage: { type: 'text' },
+    },
+  },
+};
 
 const METRICS_MAPPING = {
   mappings: {
@@ -49,6 +68,7 @@ async function createIndices() {
   for (const [index, mapping] of [
     [METRICS_INDEX, METRICS_MAPPING],
     ['bedrock-invocations', INVOCATIONS_MAPPING],
+    [CLOUDTRAIL_INDEX, CLOUDTRAIL_MAPPING],
   ] as const) {
     const { body: exists } = await client.indices.exists({ index });
     if (exists) {
@@ -74,6 +94,23 @@ async function loadMetrics() {
   ]);
   const { body: resp } = await client.bulk({ body, refresh: true });
   console.log(`Loaded ${lines.length} metrics docs, errors: ${resp.errors}`);
+}
+
+async function loadCloudTrail() {
+  let data: string;
+  try {
+    data = readFileSync(join(import.meta.dirname, '..', 'data', 'cloudtrail-events.ndjson'), 'utf-8');
+  } catch {
+    console.log('No cloudtrail-events.ndjson found, skipping');
+    return;
+  }
+  const lines = data.trim().split('\n').filter(Boolean);
+  const body = lines.flatMap((line, i) => [
+    { index: { _index: CLOUDTRAIL_INDEX, _id: String(i) } },
+    JSON.parse(line),
+  ]);
+  const { body: resp } = await client.bulk({ body, refresh: true });
+  console.log(`Loaded ${lines.length} cloudtrail docs, errors: ${resp.errors}`);
 }
 
 async function importDashboards() {
@@ -106,6 +143,7 @@ async function main() {
 
   await createIndices();
   await loadMetrics();
+  await loadCloudTrail();
   await importDashboards();
   console.log('\nDone! Dashboards at http://localhost:5601');
 }
