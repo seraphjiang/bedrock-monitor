@@ -11,14 +11,24 @@ AWS Bedrock usage analytics pipeline. Ingests invocation logs and metrics into O
 
 - Node.js 18+
 - Docker (for local OpenSearch)
-- AWS CLI v2
-- Access to AWS account `544277935543` (us-west-2)
+- AWS CLI v2 (optional — only needed for pulling live data)
 
-### AWS Credentials
+### Quick Start with Example Data (no AWS account needed)
 
 ```bash
-ada credentials update --account 544277935543 --role Admin --provider isengard --once
-aws sts get-caller-identity  # verify account 544277935543
+npm install
+docker-compose up -d                    # start OpenSearch + Dashboards
+npm run load-local                      # load example data + import dashboards
+# Open http://localhost:5601 → Dashboards
+```
+
+The `example-data/` directory contains sample Bedrock metrics (168 hourly data points) you can explore immediately.
+
+### With Your Own AWS Account
+
+```bash
+export AWS_ACCOUNT_ID=<your-account-id>
+aws configure  # or use your preferred credential method
 ```
 
 ## Setup
@@ -32,7 +42,7 @@ npm install
 The CDK stack creates the IAM logging role, S3 bucket, and CloudWatch log group:
 
 ```bash
-npx cdk bootstrap aws://544277935543/us-west-2  # first time only
+npx cdk bootstrap aws://YOUR_ACCOUNT_ID/us-west-2  # first time only
 npx cdk deploy BedrockMonitorStack
 ```
 
@@ -111,7 +121,7 @@ npm run export-dashboards
 | `AWS_REGION` | `us-west-2` | AWS region |
 | `OPENSEARCH_ENDPOINT` | `http://localhost:9200` | OpenSearch endpoint |
 | `OPENSEARCH_INDEX` | `bedrock-invocations` | Index name |
-| `S3_BUCKET` | `bedrock-monitor-544277935543` | S3 archive bucket |
+| `S3_BUCKET` | `bedrock-monitor-YOUR_ACCOUNT_ID` | S3 archive bucket |
 | `LOOKBACK_HOURS` | `24` | Hours of logs to ingest |
 | `LOOKBACK_DAYS` | `7` | Days of metrics to pull |
 | `COUNT` | `10` | Number of test invocations to generate |

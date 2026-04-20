@@ -4,7 +4,7 @@
 End-to-end validation of the Bedrock usage analytics pipeline: data generation, ingestion, OpenSearch indexing, and dashboard rendering.
 
 ## Test Environments
-- **AWS Account:** 544277935543 (us-west-2)
+- **AWS Account:** YOUR_ACCOUNT_ID (us-west-2)
 - **Local OpenSearch:** Docker, opensearch:2.11.0 + dashboards:2.11.0
 
 ## Phase 1 Test Scenarios

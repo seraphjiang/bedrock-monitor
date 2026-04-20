@@ -61,7 +61,12 @@ async function createIndices() {
 }
 
 async function loadMetrics() {
-  const data = readFileSync(join(import.meta.dirname, '..', 'data', 'metrics-hourly.ndjson'), 'utf-8');
+  let data: string;
+  try {
+    data = readFileSync(join(import.meta.dirname, '..', 'data', 'metrics-hourly.ndjson'), 'utf-8');
+  } catch {
+    data = readFileSync(join(import.meta.dirname, '..', 'example-data', 'metrics-hourly.ndjson'), 'utf-8');
+  }
   const lines = data.trim().split('\n').filter(Boolean);
   const body = lines.flatMap((line, i) => [
     { index: { _index: METRICS_INDEX, _id: String(i) } },

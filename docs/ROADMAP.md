@@ -6,7 +6,7 @@ A turnkey analytics platform for AWS Bedrock usage: ingest all invocation data, 
 ---
 
 ## Phase 1: Foundation (Current Sprint)
-> Goal: End-to-end pipeline working with real data on account 544277935543
+> Goal: End-to-end pipeline working with real data on account YOUR_ACCOUNT_ID
 
 | # | Task | Owner | Status |
 |---|------|-------|--------|

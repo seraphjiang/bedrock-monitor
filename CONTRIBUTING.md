@@ -4,7 +4,9 @@
 
 ```bash
 npm install
-ada credentials update --account 544277935543 --role Admin --provider isengard --once
+# Configure AWS credentials for your account
+export AWS_ACCOUNT_ID=YOUR_ACCOUNT_ID
+aws configure  # or use your preferred credential method
 ```
 
 ## Workflow
