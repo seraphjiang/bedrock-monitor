@@ -13,6 +13,7 @@ export interface MetricDataPoint {
   cacheReadTokens: number;
   cacheWriteTokens: number;
   timeToFirstTokenMs: number;
+  throttles: number;
 }
 
 async function discoverModels(cw: CloudWatchClient): Promise<string[]> {
@@ -42,6 +43,7 @@ async function fetchForRegion(region: string, startTime: Date, endTime: Date, pe
       { id: 'cacheRead', stat: 'Sum', metric: 'CacheReadInputTokenCount' },
       { id: 'cacheWrite', stat: 'Sum', metric: 'CacheWriteInputTokenCount' },
       { id: 'ttft', stat: 'Average', metric: 'TimeToFirstToken' },
+      { id: 'throttles', stat: 'Sum', metric: 'InvocationThrottles' },
     ].map(q => ({
       Id: q.id,
       MetricStat: {
@@ -71,6 +73,7 @@ async function fetchForRegion(region: string, startTime: Date, endTime: Date, pe
         cacheReadTokens: vals.cacheRead ?? 0,
         cacheWriteTokens: vals.cacheWrite ?? 0,
         timeToFirstTokenMs: vals.ttft ?? 0,
+        throttles: vals.throttles ?? 0,
       });
     }
   }

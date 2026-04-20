@@ -5,7 +5,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as opensearchserverless from 'aws-cdk-lib/aws-opensearchserverless';
 import { Construct } from 'constructs';
 
-const ACCOUNT_ID = 'YOUR_ACCOUNT_ID';
+const ACCOUNT_ID = '544277935543';
 const COLLECTION_NAME = 'bedrock-monitor';
 
 export class BedrockMonitorStack extends cdk.Stack {
@@ -110,6 +110,30 @@ export class BedrockMonitorStack extends cdk.Stack {
       actions: ['aoss:APIAccessAll'],
       resources: [collection.attrArn],
     }));
+
+    // CloudTrail read access (Bedrock API audit events)
+    lambdaRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['cloudtrail:LookupEvents'],
+      resources: ['*'],
+    }));
+
+    // Cost Explorer read access (actual Bedrock billing)
+    lambdaRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['ce:GetCostAndUsage'],
+      resources: ['*'],
+    }));
+
+    // CloudWatch metrics read (Bedrock + Guardrails metrics)
+    lambdaRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['cloudwatch:GetMetricData', 'cloudwatch:ListMetrics'],
+      resources: ['*'],
+    }));
+
+    // CloudWatch Logs read (invocation log ingestion)
+    logGroup.grantRead(lambdaRole);
+
+    // S3 write for archival
+    bucket.grantPut(lambdaRole);
 
     // Outputs
     new cdk.CfnOutput(this, 'LogGroupName', { value: logGroup.logGroupName });
