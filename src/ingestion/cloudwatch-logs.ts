@@ -7,7 +7,7 @@ const cwl = new CloudWatchLogsClient({ region: config.region });
 export function parseLogEvent(message: string): BedrockInvocation | null {
   try {
     const raw = JSON.parse(message);
-    const modelId = raw.modelId || raw.model_id || '';
+    if (!raw.modelId && !raw.model_id) return null; // skip non-invocation entries    const modelId = raw.modelId || raw.model_id || '';
     const inputTokens = raw.input?.inputTokenCount ?? 0;
     const outputTokens = raw.output?.outputTokenCount ?? 0;
     return {

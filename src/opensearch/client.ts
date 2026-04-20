@@ -32,6 +32,31 @@ export async function ensureIndex() {
   }
 }
 
+const METRICS_MAPPING = {
+  mappings: {
+    properties: {
+      timestamp: { type: 'date' },
+      modelId: { type: 'keyword' },
+      invocations: { type: 'integer' },
+      inputTokens: { type: 'long' },
+      outputTokens: { type: 'long' },
+      avgLatencyMs: { type: 'float' },
+      serverErrors: { type: 'integer' },
+      cacheReadTokens: { type: 'long' },
+      cacheWriteTokens: { type: 'long' },
+      timeToFirstTokenMs: { type: 'float' },
+    },
+  },
+};
+
+export async function ensureMetricsIndex(index = 'bedrock-metrics') {
+  const exists = await client.indices.exists({ index });
+  if (!exists.body) {
+    await client.indices.create({ index, body: METRICS_MAPPING });
+    console.log(`Created index: ${index}`);
+  }
+}
+
 export async function bulkIndex(docs: BedrockInvocation[]) {
   if (!docs.length) return;
   const body = docs.flatMap(doc => [

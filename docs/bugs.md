@@ -7,7 +7,7 @@
 - **Description:** When metrics data is bulk-loaded into OpenSearch, no index mapping is created beforehand. OpenSearch auto-maps `modelId` as `text` instead of `keyword`, causing all dashboard aggregations on the metrics index to fail with "Text fields are not optimised for operations that require per-document field data."
 - **Workaround:** Manually create the index with explicit mappings before loading data.
 - **Fix:** Add an `ensureMetricsIndex()` call (similar to `ensureIndex()` for invocations) in `src/opensearch/client.ts` and call it from `pull-metrics.ts` before bulk loading.
-- **Status:** Open
+- **Status:** Fixed (ensureMetricsIndex added to opensearch/client.ts)
 
 ## BUG-002: generate-test-invocations.ts used wrong Nova model IDs and body format
 - **Severity:** Medium
@@ -23,7 +23,7 @@
 - **Component:** `src/ingestion/cloudwatch-to-opensearch.ts`
 - **Description:** CloudWatch log group contains non-JSON messages (e.g., "Permissions are correctly set for Amazon Bedrock logs."). The parser returns `null` for these, but they still get passed to `bulkIndex()`, causing `errors: true` in the bulk response. The actual invocation docs index fine.
 - **Fix:** Filter out null results before batching.
-- **Status:** Open
+- **Status:** Fixed (reject entries without modelId in parseLogEvent)
 
 ## BUG-004: Docker Compose dashboards container missing DISABLE_SECURITY_DASHBOARDS_PLUGIN
 - **Severity:** Medium
@@ -31,4 +31,4 @@
 - **Component:** `docker-compose.yml`
 - **Description:** The dashboards container only sets `DISABLE_SECURITY_PLUGIN=true` but the OpenSearch Dashboards security plugin also needs `DISABLE_SECURITY_DASHBOARDS_PLUGIN=true`. Without it, all API calls return 401 Unauthorized.
 - **Fix:** Add `DISABLE_SECURITY_DASHBOARDS_PLUGIN=true` to the dashboards service environment.
-- **Status:** Open
+- **Status:** Fixed (docker-compose.yml updated)
