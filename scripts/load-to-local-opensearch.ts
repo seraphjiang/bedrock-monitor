@@ -6,6 +6,8 @@ const OPENSEARCH = process.env.OPENSEARCH_ENDPOINT || 'http://localhost:9200';
 const DASHBOARDS = process.env.DASHBOARDS_ENDPOINT || 'http://localhost:5601';
 const METRICS_INDEX = 'bedrock-metrics';
 const CLOUDTRAIL_INDEX = 'bedrock-cloudtrail';
+const GUARDRAILS_INDEX = 'bedrock-guardrails';
+const COSTS_INDEX = 'bedrock-costs';
 
 const client = new Client({ node: OPENSEARCH });
 
@@ -23,6 +25,30 @@ const CLOUDTRAIL_MAPPING = {
       'userIdentity.accountId': { type: 'keyword' },
       errorCode: { type: 'keyword' },
       errorMessage: { type: 'text' },
+    },
+  },
+};
+
+const GUARDRAILS_MAPPING = {
+  mappings: {
+    properties: {
+      timestamp: { type: 'date' },
+      guardrailId: { type: 'keyword' },
+      region: { type: 'keyword' },
+      intervened: { type: 'integer' },
+      blocked: { type: 'integer' },
+    },
+  },
+};
+
+const COSTS_MAPPING = {
+  mappings: {
+    properties: {
+      timestamp: { type: 'date' },
+      service: { type: 'keyword' },
+      usageType: { type: 'keyword' },
+      amountUsd: { type: 'float' },
+      unit: { type: 'keyword' },
     },
   },
 };
@@ -69,6 +95,8 @@ async function createIndices() {
     [METRICS_INDEX, METRICS_MAPPING],
     ['bedrock-invocations', INVOCATIONS_MAPPING],
     [CLOUDTRAIL_INDEX, CLOUDTRAIL_MAPPING],
+    [GUARDRAILS_INDEX, GUARDRAILS_MAPPING],
+    [COSTS_INDEX, COSTS_MAPPING],
   ] as const) {
     const { body: exists } = await client.indices.exists({ index });
     if (exists) {
@@ -113,6 +141,24 @@ async function loadCloudTrail() {
   console.log(`Loaded ${lines.length} cloudtrail docs, errors: ${resp.errors}`);
 }
 
+async function loadNdjson(file: string, index: string) {
+  let data: string;
+  try {
+    data = readFileSync(join(import.meta.dirname, '..', 'data', file), 'utf-8');
+  } catch {
+    console.log(`No ${file} found, skipping`);
+    return;
+  }
+  const lines = data.trim().split('\n').filter(Boolean);
+  if (!lines.length) { console.log(`${file} is empty, skipping`); return; }
+  const body = lines.flatMap((line, i) => [
+    { index: { _index: index, _id: String(i) } },
+    JSON.parse(line),
+  ]);
+  const { body: resp } = await client.bulk({ body, refresh: true });
+  console.log(`Loaded ${lines.length} ${index} docs, errors: ${resp.errors}`);
+}
+
 async function importDashboards() {
   const dir = join(import.meta.dirname, '..', 'dashboards');
   for (const file of readdirSync(dir).filter(f => f.endsWith('.ndjson'))) {
@@ -144,6 +190,8 @@ async function main() {
   await createIndices();
   await loadMetrics();
   await loadCloudTrail();
+  await loadNdjson('guardrails-metrics.ndjson', GUARDRAILS_INDEX);
+  await loadNdjson('costs-daily.ndjson', COSTS_INDEX);
   await importDashboards();
   console.log('\nDone! Dashboards at http://localhost:5601');
 }
