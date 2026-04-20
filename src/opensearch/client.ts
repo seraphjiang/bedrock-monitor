@@ -37,6 +37,7 @@ const METRICS_MAPPING = {
     properties: {
       timestamp: { type: 'date' },
       modelId: { type: 'keyword' },
+      region: { type: 'keyword' },
       invocations: { type: 'integer' },
       inputTokens: { type: 'long' },
       outputTokens: { type: 'long' },
