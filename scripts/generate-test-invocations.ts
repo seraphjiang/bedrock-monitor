@@ -14,13 +14,25 @@ const TEST_PROMPTS = [
 const MODELS = [
   'amazon.nova-pro-v1:0',
   'amazon.nova-2-lite-v1:0',
+  'us.anthropic.claude-haiku-4-5-20251001-v1:0',
 ];
 
-async function invoke(modelId: string, prompt: string) {
-  const body = JSON.stringify({
+function buildRequestBody(modelId: string, prompt: string): string {
+  if (modelId.includes('anthropic')) {
+    return JSON.stringify({
+      anthropic_version: 'bedrock-2023-05-31',
+      max_tokens: 200,
+      messages: [{ role: 'user', content: prompt }],
+    });
+  }
+  return JSON.stringify({
     inputText: prompt,
     textGenerationConfig: { maxTokenCount: 200, temperature: 0.7 },
   });
+}
+
+async function invoke(modelId: string, prompt: string) {
+  const body = buildRequestBody(modelId, prompt);
   try {
     const start = Date.now();
     const resp = await client.send(new InvokeModelCommand({ modelId, body, contentType: 'application/json', accept: 'application/json' }));

@@ -9,6 +9,7 @@
     "pull-metrics": "npx tsx scripts/pull-metrics.ts",
     "generate-test-data": "npx tsx scripts/generate-test-invocations.ts",
     "export-dashboards": "npx tsx scripts/export-dashboards.ts",
+    "load-local": "npx tsx scripts/load-to-local-opensearch.ts",
     "setup-logging": "npx tsx scripts/setup-bedrock-logging.ts"
   },
   "dependencies": {
