@@ -17,19 +17,19 @@ A turnkey analytics platform for AWS Bedrock usage: ingest all invocation data, 
 | 1.5 | OpenSearch index mapping + bulk indexer | sde | ✅ Done |
 | 1.6 | S3 NDJSON archival writer | sde | ✅ Done |
 | 1.7 | 4 dashboard NDJSON exports | sde | ✅ Done |
-| 1.8 | Local OpenSearch (Docker Compose) for dev/test | devops | 🔲 TODO |
-| 1.9 | Load real metrics into OpenSearch + validate dashboards | test | 🔲 TODO |
-| 1.10 | Generate test invocations for detailed log data | test | 🔲 TODO |
+| 1.8 | Local OpenSearch (Docker Compose) for dev/test | devops | ✅ Done |
+| 1.9 | Load real metrics into OpenSearch + validate dashboards | test | 🔄 In Progress |
+| 1.10 | Generate test invocations for detailed log data | test | ✅ Done |
 
 ## Phase 2: Production Pipeline
 > Goal: Automated, continuous ingestion with OpenSearch Serverless
 
 | # | Task | Owner | Status |
 |---|------|-------|--------|
-| 2.1 | OpenSearch Serverless collection (CDK) | devops | 🔲 TODO |
-| 2.2 | Lambda: CW Logs subscription → OpenSearch | sde | 🔲 TODO |
-| 2.3 | Lambda: CW Logs subscription → S3 (Firehose or direct) | sde | 🔲 TODO |
-| 2.4 | CloudWatch metrics scheduled pull (EventBridge + Lambda) | sde | 🔲 TODO |
+| 2.1 | OpenSearch Serverless collection (CDK) | devops | ⏭️ Deferred (Docker for PoC) |
+| 2.2 | Lambda: CW Logs subscription → OpenSearch | sde | ✅ Done |
+| 2.3 | Lambda: CW Logs subscription → S3 (Firehose or direct) | sde | ✅ Done (combined in 2.2) |
+| 2.4 | CloudWatch metrics scheduled pull (EventBridge + Lambda) | sde | ✅ Done |
 | 2.5 | CDK for Lambdas, EventBridge rules, subscriptions | devops | 🔲 TODO |
 | 2.6 | Integration tests: end-to-end pipeline validation | test | 🔲 TODO |
 
@@ -38,10 +38,10 @@ A turnkey analytics platform for AWS Bedrock usage: ingest all invocation data, 
 
 | # | Task | Owner | Status |
 |---|------|-------|--------|
-| 3.1 | Prompt/response quality scoring (via Bedrock eval) | aibuilder | 🔲 TODO |
-| 3.2 | Anomaly detection on usage patterns | aibuilder | 🔲 TODO |
-| 3.3 | Cost forecasting dashboard | aibuilder | 🔲 TODO |
-| 3.4 | Token efficiency analysis (input/output ratio trends) | aibuilder | 🔲 TODO |
+| 3.1 | Prompt/response quality scoring (via Bedrock eval) | aibuilder | 🔲 Designed (docs/PHASE3-DESIGN.md) |
+| 3.2 | Anomaly detection on usage patterns | aibuilder | 🔲 Designed (docs/PHASE3-DESIGN.md) |
+| 3.3 | Cost forecasting dashboard | aibuilder | 🔄 Starting (linear projection) |
+| 3.4 | Token efficiency analysis (input/output ratio trends) | aibuilder | ✅ Done |
 | 3.5 | Multi-account support | sde | 🔲 TODO |
 | 3.6 | Guardrails event ingestion | sde | 🔲 TODO |
 

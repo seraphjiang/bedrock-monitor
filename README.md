@@ -1,44 +1,57 @@
 # bedrock-monitor
 
-AWS Bedrock usage analytics pipeline. Ingests Bedrock invocation logs into OpenSearch and S3 for dashboards covering:
+AWS Bedrock usage analytics pipeline. Ingests invocation logs and metrics into OpenSearch and S3, with pre-built dashboards for:
 
-- **Usage analysis** — invocations, tokens, latency by model/user/time
-- **Model comparison** — performance, cost, error rates across models
-- **Audit** — who called what, when, with what parameters
-- **Cost tracking** — estimated spend by model, user, application
+- **Usage Overview** — invocations, tokens, latency by model/user/time
+- **Model Comparison** — latency, cost, error rates across models
+- **Audit Trail** — per-request log with caller identity, operation, and parameters
+- **Cost Analysis** — estimated spend by model, user, and time period
 
 ## Prerequisites
 
-Switch AWS credentials to account **544277935543** (us-west-2):
+- Node.js 18+
+- Docker (for local OpenSearch)
+- AWS CLI v2
+- Access to AWS account `544277935543` (us-west-2)
+
+### AWS Credentials
 
 ```bash
-# Option A: SSO
-aws sso login --profile bedrock-monitor
-export AWS_PROFILE=bedrock-monitor
-
-# Option B: Environment variables
-export AWS_ACCESS_KEY_ID=<your-key>
-export AWS_SECRET_ACCESS_KEY=<your-secret>
-export AWS_REGION=us-west-2
-
-# Verify
-aws sts get-caller-identity  # should show account 544277935543
+ada credentials update --account 544277935543 --role Admin --provider isengard --once
+aws sts get-caller-identity  # verify account 544277935543
 ```
 
-## Infrastructure Setup
-
-Deploy the CDK stack (creates IAM role, S3 bucket, CloudWatch log group):
+## Setup
 
 ```bash
 npm install
+```
+
+### 1. Deploy Infrastructure (first time)
+
+The CDK stack creates the IAM logging role, S3 bucket, and CloudWatch log group:
+
+```bash
 npx cdk bootstrap aws://544277935543/us-west-2  # first time only
 npx cdk deploy BedrockMonitorStack
 ```
 
-### Local OpenSearch (for dashboards)
+### 2. Enable Bedrock Logging (first time)
 
 ```bash
-docker run -d --name opensearch -p 9200:9200 -p 5601:5601 \
+npm run setup-logging
+```
+
+This configures Bedrock to write invocation logs to CloudWatch (`/aws/bedrock/invocations`).
+
+### 3. Start Local OpenSearch
+
+For local dashboard development and testing:
+
+```bash
+# Docker Compose (preferred — see docker-compose.yml when available)
+# Or manually:
+docker run -d --name opensearch -p 9200:9200 \
   -e "discovery.type=single-node" -e "DISABLE_SECURITY_PLUGIN=true" \
   opensearchproject/opensearch:2.11.0
 
@@ -48,40 +61,91 @@ docker run -d --name opensearch-dashboards -p 5601:5601 \
   opensearchproject/opensearch-dashboards:2.11.0
 ```
 
-## Quick Start
+Dashboards UI: http://localhost:5601
+
+### 4. Ingest Data
 
 ```bash
-# 1. Enable Bedrock invocation logging (one-time)
-npm run setup-logging
+# Pull CloudWatch metrics (last 7 days by default)
+npm run pull-metrics
+LOOKBACK_DAYS=30 npm run pull-metrics  # custom range
 
-# 2. Generate test invocations (optional — creates real Bedrock calls)
-npm run generate-test-data
-
-# 3. Ingest logs into OpenSearch
+# Ingest invocation logs into OpenSearch + S3
 npm run ingest
+LOOKBACK_HOURS=48 npm run ingest  # custom range
+```
 
-# 4. Export dashboards as NDJSON for import into OpenSearch Dashboards
+### 5. Import Dashboards
+
+Import the NDJSON files from `dashboards/` into OpenSearch Dashboards:
+
+1. Open http://localhost:5601
+2. Go to **Stack Management → Saved Objects → Import**
+3. Import each file from `dashboards/`:
+   - `usage-overview.ndjson`
+   - `model-comparison.ndjson`
+   - `audit-trail.ndjson`
+   - `cost-analysis.ndjson`
+
+Or list available dashboards:
+
+```bash
 npm run export-dashboards
 ```
 
-## Dashboards
+## Scripts
 
-Pre-built NDJSON files in `dashboards/` — import into OpenSearch Dashboards:
+| Command | Description |
+|---------|-------------|
+| `npm run ingest` | Ingest CloudWatch invocation logs → OpenSearch + S3 |
+| `npm run pull-metrics` | Pull CloudWatch metrics (hourly aggregates) → `data/` |
+| `npm run generate-test-data` | Generate real Bedrock invocations for testing |
+| `npm run export-dashboards` | List available dashboard NDJSON files |
+| `npm run setup-logging` | Enable Bedrock invocation logging (one-time) |
+| `npm run build` | Compile TypeScript |
 
-- `usage-overview.ndjson` — invocations, tokens, latency over time
-- `model-comparison.ndjson` — side-by-side model performance
-- `audit-trail.ndjson` — detailed invocation log with filters
-- `cost-analysis.ndjson` — estimated cost breakdown
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AWS_REGION` | `us-west-2` | AWS region |
+| `OPENSEARCH_ENDPOINT` | `http://localhost:9200` | OpenSearch endpoint |
+| `OPENSEARCH_INDEX` | `bedrock-invocations` | Index name |
+| `S3_BUCKET` | `bedrock-monitor-544277935543` | S3 archive bucket |
+| `LOOKBACK_HOURS` | `24` | Hours of logs to ingest |
+| `LOOKBACK_DAYS` | `7` | Days of metrics to pull |
+| `COUNT` | `10` | Number of test invocations to generate |
 
 ## Architecture
 
 ```
-CloudWatch Logs (Bedrock invocation logs)
-    ↓
-Ingestion script (src/ingestion/)
-    ↓
-┌─────────────┬──────────────┐
-│ OpenSearch   │ S3 (archive) │
-│ (dashboards) │ (raw NDJSON) │
-└─────────────┴──────────────┘
+CloudWatch Logs (/aws/bedrock/invocations)
+         │
+         ▼
+  Ingestion Scripts (src/ingestion/)
+         │
+    ┌────┴────┐
+    ▼         ▼
+OpenSearch   S3 (NDJSON archive)
+    │
+    ▼
+OpenSearch Dashboards (4 pre-built dashboards)
+```
+
+See [docs/HLD.md](docs/HLD.md) for the full high-level design and [docs/ROADMAP.md](docs/ROADMAP.md) for the project roadmap.
+
+## Project Structure
+
+```
+├── dashboards/          # Pre-built OpenSearch dashboard NDJSON exports
+├── data/                # Local metric data (NDJSON)
+├── docs/                # Design docs, roadmap, ownership
+├── infra/               # CDK stack (IAM, S3, CloudWatch)
+├── scripts/             # CLI tools (metrics pull, test data, logging setup)
+└── src/
+    ├── config.ts        # Centralized configuration
+    ├── types.ts         # TypeScript types + cost estimation
+    ├── ingestion/       # CloudWatch → OpenSearch/S3 pipeline
+    ├── opensearch/      # OpenSearch client + index management
+    └── s3/              # S3 NDJSON writer
 ```
