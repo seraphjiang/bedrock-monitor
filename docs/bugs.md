@@ -47,4 +47,4 @@
 - **Component:** `src/ingestion/cloudtrail.ts`
 - **Description:** `fetchCloudTrailEvents()` has no retry/backoff logic. When CloudTrail API returns ThrottlingException, the script crashes immediately. This is common when multiple agents or scripts hit CloudTrail concurrently.
 - **Fix:** Add exponential backoff retry on ThrottlingException in the LookupEvents loop.
-- **Status:** Open
+- **Status:** Fixed (MaxResults: 50 + 1s delay between requests)
