@@ -12,8 +12,8 @@ const TEST_PROMPTS = [
 ];
 
 const MODELS = [
-  'amazon.nova-pro-v1:0',
-  'amazon.nova-2-lite-v1:0',
+  'us.amazon.nova-lite-v1:0',
+  'us.amazon.nova-2-lite-v1:0',
   'us.anthropic.claude-haiku-4-5-20251001-v1:0',
 ];
 
@@ -25,9 +25,10 @@ function buildRequestBody(modelId: string, prompt: string): string {
       messages: [{ role: 'user', content: prompt }],
     });
   }
+  // Nova models use messages format with inferenceConfig
   return JSON.stringify({
-    inputText: prompt,
-    textGenerationConfig: { maxTokenCount: 200, temperature: 0.7 },
+    messages: [{ role: 'user', content: [{ text: prompt }] }],
+    inferenceConfig: { maxTokens: 200, temperature: 0.7 },
   });
 }
 
