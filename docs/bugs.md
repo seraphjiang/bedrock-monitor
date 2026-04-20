@@ -40,3 +40,11 @@
 - **Description:** The `importDashboards()` function sends the NDJSON as a `Blob` with `fetch()`, but the OpenSearch Dashboards saved objects import API expects `multipart/form-data` with a `file` field. The import silently fails (returns undefined). Curl with `--form file=@` works correctly.
 - **Fix:** Use `FormData` with a file field, or shell out to curl.
 - **Status:** Fixed (verified — imports now return success=true)
+
+## BUG-006: CloudTrail ingestion crashes on ThrottlingException
+- **Severity:** Medium
+- **Found:** 2026-04-20 (CloudTrail testing)
+- **Component:** `src/ingestion/cloudtrail.ts`
+- **Description:** `fetchCloudTrailEvents()` has no retry/backoff logic. When CloudTrail API returns ThrottlingException, the script crashes immediately. This is common when multiple agents or scripts hit CloudTrail concurrently.
+- **Fix:** Add exponential backoff retry on ThrottlingException in the LookupEvents loop.
+- **Status:** Open

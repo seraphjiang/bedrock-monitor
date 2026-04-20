@@ -40,6 +40,18 @@ End-to-end validation of the Bedrock usage analytics pipeline: data generation, 
 | T4.1 | OpenSearch starts and is healthy | GET :9200 returns cluster info | ✅ Pass |
 | T4.2 | Dashboards starts and accepts API calls | Saved objects API returns 200 | ⚠ Fail without env fix (BUG-004) |
 
+### T5: CloudTrail Ingestion + Security Audit Dashboard
+| # | Scenario | Expected | Status |
+|---|----------|----------|--------|
+| T5.1 | Pull CloudTrail events (1 day, us-west-2) | Events written to data/cloudtrail-events.ndjson | ✅ Pass (1405 events) |
+| T5.2 | Load CloudTrail into bedrock-cloudtrail index | All docs indexed with keyword mappings | ✅ Pass |
+| T5.3 | Aggregation: by userIdentity.arn | Groups by caller ARN | ✅ Pass (5 users) |
+| T5.4 | Aggregation: by eventName | Groups by API action | ✅ Pass (6 event types) |
+| T5.5 | Aggregation: by sourceIPAddress | Groups by source IP | ✅ Pass |
+| T5.6 | Aggregation: date_histogram on eventTime | Hourly buckets | ✅ Pass (25 buckets) |
+| T5.7 | Import security-audit.ndjson dashboard | 7 objects imported | ✅ Pass |
+| T5.8 | CloudTrail pull handles throttling | Retries with backoff | ⚠ Fail (BUG-006) |
+
 ## Phase 2 Test Scenarios (Planned)
 
 ### T5: Lambda Ingestion Pipeline
