@@ -39,4 +39,4 @@
 - **Component:** `scripts/load-to-local-opensearch.ts`
 - **Description:** The `importDashboards()` function sends the NDJSON as a `Blob` with `fetch()`, but the OpenSearch Dashboards saved objects import API expects `multipart/form-data` with a `file` field. The import silently fails (returns undefined). Curl with `--form file=@` works correctly.
 - **Fix:** Use `FormData` with a file field, or shell out to curl.
-- **Status:** Open
+- **Status:** Fixed (verified — imports now return success=true)
